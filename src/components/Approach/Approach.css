@@ -95,8 +95,6 @@
   line-height: 1.06;
   letter-spacing: -0.022em;
   text-wrap: balance;
-  /* Reserve two lines so the descriptions line up as well. */
-  min-height: 2.12em;
 }
 
 .ap-panel__body {
@@ -254,7 +252,6 @@
   }
 
   .ap-panel__title {
-    min-height: 0;
     font-size: clamp(28px, 8vw, 36px);
   }
 }
