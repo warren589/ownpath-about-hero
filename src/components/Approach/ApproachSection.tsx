@@ -17,7 +17,8 @@ const REDUCED = '(prefers-reduced-motion: reduce)'
 /** The hero's pin (built after fonts load) shifts everything below it; refresh after it. */
 const AFTER_HERO = -1
 
-type Link = { d: string; width: number }
+/** `from` is the index of the panel the link leaves. */
+type Link = { from: number; d: string; width: number }
 
 const motionVars = {
   '--ap-duration': `${hoverMotion.duration}ms`,
@@ -35,8 +36,13 @@ export function ApproachSection() {
   const [active, setActive] = useState<number | null>(null)
   const [links, setLinks] = useState<Link[]>([])
 
+  // A panel responds only when a link from the active panel actually reaches it.
   const stateOf = (i: number): PanelState =>
-    active === i ? 'active' : active !== null && i === active + 1 ? 'next' : 'idle'
+    active === i
+      ? 'active'
+      : active !== null && i === active + 1 && principles[active].graphic.exit
+        ? 'next'
+        : 'idle'
 
   // ---- Links between panels: measured from the rendered graphics ----------
   const measureLinks = useCallback(() => {
@@ -62,12 +68,13 @@ export function ApproachSection() {
         // panel's entry node.
         const top = cellToClient(svgs[i + 1], [entryNode.at[0], entryNode.at[1] - entryNode.size / 2])
         const start = { x: top.x, y: panelRefs.current[i].getBoundingClientRect().bottom - 2 }
-        next.push({ d: `M${rel(start).x},${rel(start).y} L${rel(top).x},${rel(top).y}`, width })
+        next.push({ from: i, d: `M${rel(start).x},${rel(start).y} L${rel(top).x},${rel(top).y}`, width })
       } else {
         const p1 = rel(a)
         const p2 = rel(b)
         const mid = (p1.x + p2.x) / 2
         next.push({
+          from: i,
           d: roundedPolyline(
             [p1, { x: mid, y: p1.y }, { x: mid, y: p2.y }, p2],
             width,
@@ -177,16 +184,16 @@ export function ApproachSection() {
           />
         ))}
 
-        {/* One approach: each principle extends a connector into the next. */}
+        {/* One approach: a principle can extend a connector into the next. */}
         <svg className="ap-section__links" aria-hidden="true" focusable="false">
-          {links.map((l, i) => (
+          {links.map((l) => (
             <path
-              key={i}
+              key={l.from}
               className="ap-section__link"
               d={l.d}
               pathLength={1}
               strokeWidth={l.width}
-              data-on={active === i || undefined}
+              data-on={active === l.from || undefined}
             />
           ))}
         </svg>

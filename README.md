@@ -74,7 +74,7 @@ A quieter section directly below the hero: three editorial panels (blue / neutra
 Interaction:
 
 - **Reveal:** a single ScrollTrigger (`once`). The heading appears, then the panels with a stagger, then each graphic resolves.
-- **Hover (fine pointers):** the active panel's graphic resolves (nodes gather, connectors complete, the grid strengthens). A blue link extends into the next panel, whose entry point lights up as the link arrives. The remaining panel steps back slightly.
+- **Hover (fine pointers):** the active panel's graphic resolves (nodes gather, connectors complete, the grid strengthens) and the other panels step back slightly. Panel 01 resolves entirely within its own panel. Panel 02 extends a blue link into panel 03, whose entry point lights up as the link arrives. A link exists only where a graphic defines an `exit`.
 - **Touch / mobile:** the panels stack vertically. The panel crossing the middle of the viewport becomes active, and its link drops vertically into the next panel.
 - **Reduced motion:** no reveal, and state changes are instant.
 

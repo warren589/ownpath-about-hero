@@ -70,7 +70,7 @@ const oneTeam: Graphic = {
     { id: 'a-unit', points: [[3.05, 1.75], [5.25, 1.75], [5.25, 4], [8, 4]], weight: 'bar', draw: [0.14, 1] },
     { id: 'c-unit', points: [[3.05, 6.25], [5.25, 6.25], [5.25, 4], [8, 4]], weight: 'bar', draw: [0.14, 1] },
   ],
-  exit: [9, 4],
+  // No exit: this graphic resolves within its own panel.
 }
 
 /** 02 — question → exploration → focus. */

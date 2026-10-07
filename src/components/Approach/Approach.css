@@ -31,7 +31,6 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: clamp(460px, 34vw, 640px);
   padding: clamp(22px, 2.1vw, 36px);
   border-radius: 6px;
   background: var(--panel-bg);
@@ -82,8 +81,9 @@
   padding: clamp(24px, 2.4vw, 40px) 0 clamp(28px, 3vw, 48px);
 }
 
+/* Text follows the graphic directly, so every title starts on the same line. */
 .ap-panel__text {
-  margin-top: auto;
+  padding-bottom: clamp(8px, 1.6vw, 32px);
 }
 
 .ap-panel__title {
@@ -95,6 +95,8 @@
   line-height: 1.06;
   letter-spacing: -0.022em;
   text-wrap: balance;
+  /* Reserve two lines so the descriptions line up as well. */
+  min-height: 2.12em;
 }
 
 .ap-panel__body {
@@ -252,6 +254,7 @@
   }
 
   .ap-panel__title {
+    min-height: 0;
     font-size: clamp(28px, 8vw, 36px);
   }
 }
