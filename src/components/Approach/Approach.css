@@ -1,0 +1,266 @@
+/* ==========================================================================
+   Our approach
+   Hover / activation states are pure CSS, driven by `data-state` on each
+   panel; timings come from motion.ts as custom properties on the section.
+   ========================================================================== */
+
+.ap-section {
+  padding: clamp(96px, 14vh, 176px) var(--op-gutter) clamp(96px, 14vh, 176px);
+}
+
+.ap-section__heading {
+  margin: 0 0 clamp(36px, 4.4vw, 72px);
+  font-family: var(--op-serif);
+  font-weight: 300;
+  font-size: clamp(40px, 4.8vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.028em;
+}
+
+.ap-section__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 0.8vw, 14px);
+}
+
+/* ---- Panel ---------------------------------------------------------------- */
+
+.ap-panel {
+  --reveal: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(460px, 34vw, 640px);
+  padding: clamp(22px, 2.1vw, 36px);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--panel-fg);
+}
+
+.ap-panel--blue {
+  --panel-bg: var(--op-blue);
+  --panel-fg: var(--op-bg);
+  --panel-body: rgba(246, 246, 244, 0.78);
+  --g-primary: var(--op-bg);
+  --g-secondary: rgba(246, 246, 244, 0.42);
+  --g-grid: rgba(246, 246, 244, 0.13);
+  --g-grid-active: rgba(246, 246, 244, 0.22);
+}
+
+.ap-panel--neutral {
+  --panel-bg: var(--op-chrome);
+  --panel-fg: var(--op-ink);
+  --panel-body: rgba(0, 0, 0, 0.66);
+  --g-primary: var(--op-blue);
+  --g-secondary: var(--op-muted);
+  --g-grid: rgba(0, 0, 0, 0.055);
+  --g-grid-active: rgba(0, 0, 0, 0.1);
+}
+
+.ap-panel--dark {
+  --panel-bg: var(--op-ink);
+  --panel-fg: var(--op-bg);
+  --panel-body: rgba(246, 246, 244, 0.66);
+  --g-primary: var(--op-blue);
+  --g-secondary: rgba(246, 246, 244, 0.34);
+  --g-grid: rgba(246, 246, 244, 0.08);
+  --g-grid-active: rgba(246, 246, 244, 0.15);
+}
+
+.ap-panel__index {
+  font-family: var(--op-sans);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
+}
+
+/* Fixed offset from the top so the three grids share one baseline. */
+.ap-panel__visual {
+  padding: clamp(24px, 2.4vw, 40px) 0 clamp(28px, 3vw, 48px);
+}
+
+.ap-panel__text {
+  margin-top: auto;
+}
+
+.ap-panel__title {
+  margin: 0;
+  max-width: 11em;
+  font-family: var(--op-serif);
+  font-weight: 300;
+  font-size: clamp(28px, 2.55vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+
+.ap-panel__body {
+  margin-top: clamp(14px, 1.2vw, 20px);
+  max-width: 25em;
+  font-family: var(--op-sans);
+  font-size: clamp(14px, 1.02vw, 16px);
+  line-height: 1.42;
+  color: var(--panel-body);
+}
+
+/* ---- Graphic -------------------------------------------------------------- */
+
+.ap-graphic {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: visible;
+  transition: opacity var(--ap-duration) var(--ap-ease);
+}
+
+.ap-graphic__grid {
+  fill: none;
+  stroke: var(--g-grid);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: crispEdges;
+  opacity: var(--reveal);
+  transition: stroke var(--ap-duration) var(--ap-ease);
+}
+
+.ap-graphic__path {
+  fill: none;
+  stroke: var(--g-primary);
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - var(--rest) * var(--reveal));
+  transition: stroke-dashoffset var(--ap-duration) var(--ap-ease);
+}
+
+.ap-graphic__path--hair {
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.ap-graphic__reveal {
+  opacity: var(--reveal);
+  transform: scale(calc(0.6 + 0.4 * var(--reveal)));
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ap-graphic__node {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform var(--ap-duration) var(--ap-ease),
+    fill var(--ap-duration) var(--ap-ease),
+    fill-opacity var(--ap-duration) var(--ap-ease);
+}
+
+.ap-graphic__node--primary {
+  fill: var(--g-primary);
+}
+
+.ap-graphic__node--secondary {
+  fill: var(--g-secondary);
+}
+
+.ap-graphic__node--outline {
+  fill-opacity: 0;
+  stroke: var(--g-primary);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Active: the graphic resolves — nodes gather, connectors complete. */
+.ap-panel[data-state='active'] .ap-graphic__grid {
+  stroke: var(--g-grid-active);
+}
+
+.ap-panel[data-state='active'] .ap-graphic__node {
+  fill: var(--g-primary);
+  fill-opacity: 1;
+  transform: translate(var(--dx), var(--dy)) scale(var(--scale));
+}
+
+.ap-panel[data-state='active'] .ap-graphic__path {
+  stroke-dashoffset: calc(1 - var(--active) * var(--reveal));
+}
+
+/* Next: the incoming connector lands, and the entry point picks it up. */
+.ap-panel[data-state='next'] .ap-graphic__node--entry {
+  fill: var(--g-primary);
+  transition-delay: var(--ap-response-delay);
+}
+
+.ap-panel[data-state='next'] .ap-graphic__grid {
+  stroke: var(--g-grid-active);
+  transition-delay: var(--ap-response-delay);
+}
+
+/* The rest of the row steps back slightly, so the active pair reads as one. */
+.ap-section__row[data-engaged] .ap-panel[data-state='idle'] .ap-graphic {
+  opacity: var(--ap-resting-dim);
+}
+
+/* ---- Links between panels --------------------------------------------------- */
+
+.ap-section__links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ap-section__link {
+  fill: none;
+  stroke: var(--op-blue);
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset calc(var(--ap-link-duration) * 0.6) var(--ap-ease);
+}
+
+.ap-section__link[data-on] {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--ap-link-duration) var(--ap-ease) var(--ap-link-delay);
+}
+
+/* While the reveal tween drives --reveal, transitions would only add lag. */
+.ap-section.is-revealing .ap-graphic *,
+.ap-section.is-revealing .ap-graphic {
+  transition: none;
+}
+
+/* ---- Mobile: stacked, connected vertically -------------------------------- */
+
+@media (max-width: 767px) {
+  .ap-section__row {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .ap-panel {
+    min-height: 0;
+  }
+
+  .ap-panel__visual {
+    padding: 28px 0 36px;
+  }
+
+  .ap-panel__title {
+    font-size: clamp(28px, 8vw, 36px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-section {
+    --ap-duration: 1ms;
+    --ap-link-duration: 1ms;
+    --ap-link-delay: 0ms;
+    --ap-response-delay: 0ms;
+  }
+}

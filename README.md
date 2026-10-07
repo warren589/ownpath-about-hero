@@ -60,3 +60,22 @@ One grid unit is both the system's layout module and the background grid cell, a
 - The **Aeonik trial** font only has basic Latin. The em dash in the supporting line falls back to the next font in the sans stack.
 - No logo file was supplied, so the nav wordmark is a typeset stand-in. Replace `.nav__logo` with the real SVG.
 - Font licensing: Georgia Pro is a Microsoft font and Aeonik is a CoType trial. Check the licences before shipping.
+
+---
+
+# Our approach
+
+A quieter section directly below the hero: three editorial panels (blue / neutral / black) that read as one approach. Code lives in [`src/components/Approach`](src/components/Approach).
+
+- **`content.ts`**: the heading, the three principles (copy, theme) and each panel's graphic, described as nodes and paths on a shared 12 × 8 grid. Row y = 4 is common to all three graphics, so the links between panels run along one line.
+- **`motion.ts`**: hover timings (exposed to CSS as custom properties), reveal values and the mobile activation band.
+- `ApproachSection` → `ApproachPanel` → `ApproachGraphic`. Connectors reuse the hero's `roundedPolyline` (read-only).
+
+Interaction:
+
+- **Reveal:** a single ScrollTrigger (`once`). The heading appears, then the panels with a stagger, then each graphic resolves.
+- **Hover (fine pointers):** the active panel's graphic resolves (nodes gather, connectors complete, the grid strengthens). A blue link extends into the next panel, whose entry point lights up as the link arrives. The remaining panel steps back slightly.
+- **Touch / mobile:** the panels stack vertically. The panel crossing the middle of the viewport becomes active, and its link drops vertically into the next panel.
+- **Reduced motion:** no reveal, and state changes are instant.
+
+The approach triggers use `refreshPriority: -1` so they are measured after the hero's pin spacer exists.
