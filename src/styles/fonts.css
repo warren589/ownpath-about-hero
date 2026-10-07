@@ -1,0 +1,25 @@
+/* Supplied Ownpath typefaces (converted 1:1 to WOFF2 from the provided files). */
+
+@font-face {
+  font-family: 'Georgia Pro';
+  src: url('../assets/fonts/GeorgiaPro-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Georgia Pro';
+  src: url('../assets/fonts/GeorgiaPro-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: url('../assets/fonts/AeonikTRIAL-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

@@ -1,0 +1,71 @@
+/* Page chrome, after the current ownpath.xyz navigation. */
+.nav {
+  position: fixed;
+  z-index: 10;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  width: min(790px, calc(100% - 2 * var(--op-gutter)));
+  font-family: var(--op-sans);
+  font-size: 15px;
+}
+
+.nav__bar,
+.nav__cta {
+  display: flex;
+  align-items: center;
+  height: 54px;
+  border-radius: 4px;
+  background: var(--op-chrome);
+}
+
+.nav__bar {
+  flex: 1;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.nav__cta {
+  padding: 0 20px;
+  white-space: nowrap;
+}
+
+/* Wordmark stand-in: no logo file was supplied. */
+.nav__logo {
+  color: var(--op-blue);
+  font-family: var(--op-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+
+.nav__links {
+  display: flex;
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__links a[aria-current='page'] {
+  color: var(--op-blue);
+}
+
+@media (max-width: 767px) {
+  .nav {
+    top: 12px;
+  }
+  .nav__links {
+    display: none;
+  }
+  .nav__bar,
+  .nav__cta {
+    height: 46px;
+  }
+  .nav__bar {
+    padding: 0 16px;
+  }
+}

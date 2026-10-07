@@ -1,0 +1,16 @@
+:root {
+  /* Colour */
+  --op-bg: #f6f6f4;
+  --op-blue: #0342f0;
+  --op-ink: #000000;
+  --op-muted: #808695;
+  --op-chrome: #e4e4e1;
+
+  /* Type */
+  --op-serif: 'Georgia Pro', Georgia, 'Times New Roman', serif;
+  /* The Aeonik trial cut has no em dash; it falls through to the next face. */
+  --op-sans: 'Aeonik', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Layout */
+  --op-gutter: clamp(20px, 5.6vw, 112px);
+}
