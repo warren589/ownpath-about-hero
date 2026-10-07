@@ -21,6 +21,10 @@ export type HeroRefs = {
   stage: HTMLElement
   headlineItems: HTMLElement[]
   nodes: Record<Discipline, NodeRefs>
+  /** STATE 01 anchor point; grows into the hub's blue tile. */
+  anchor: HTMLElement
+  grid: SVGSVGElement
+  gridPath: SVGPathElement
   connectorLayer: SVGGElement
   connectorPaths: Record<string, SVGPathElement>
   statement: HTMLElement
@@ -61,6 +65,19 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
     gsap.set(n.body, { width: g.icon, height: g.icon, left: -g.icon / 2, top: -g.icon / 2 })
     gsap.set(n.tile, { width: g.tile, height: g.tile, borderRadius: g.tile * layout.tileRadius })
   }
+  gsap.set(refs.anchor, {
+    width: g.tile,
+    height: g.tile,
+    left: -g.tile / 2,
+    top: -g.tile / 2,
+    borderRadius: g.tile * layout.tileRadius,
+  })
+  refs.gridPath.setAttribute('d', g.grid)
+  // The grid dissolves toward the edges of the composition (a mask, not a fill).
+  const fade = `radial-gradient(${layout.gridFade.x * g.unit}px ${layout.gridFade.y * g.unit}px at ${g.center.x}px ${g.center.y}px, #000 35%, transparent 100%)`
+  refs.grid.style.maskImage = fade
+  refs.grid.style.webkitMaskImage = fade
+
   const pathLengths: Record<string, number> = {}
   for (const { def, d } of g.connectors) {
     const path = refs.connectorPaths[def.id]
@@ -75,10 +92,12 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
   const node = Object.fromEntries(
     DISCIPLINES.map((id) => [id, { converge: 0, tile: 0, settle: 0 }]),
   ) as Record<Discipline, { converge: number; tile: number; settle: number }>
-  const system = { shrink: 0, labels: 1, hubOut: 0 }
+  const system = { anchor: 0, shrink: 0, labels: 1, hubOut: 0 }
+  const hub = layout.hub
   const connector = Object.fromEntries(g.connectors.map(({ def }) => [def.id, { draw: 0, retract: 0 }]))
 
   const ease = {
+    anchorForm: gsap.parseEase(E.anchorForm),
     convergeX: gsap.parseEase(E.convergeX),
     convergeY: gsap.parseEase(E.convergeY),
     tileForm: gsap.parseEase(E.tileForm),
@@ -131,13 +150,28 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
       n.root.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`
       n.root.style.opacity = String(opacity)
       n.body.style.transform = `scale(${scale})`
-      n.tile.style.transform = `translate(-50%, -50%) scale(${tf * (1 - dissolve)})`
-      n.icon.style.color = mixColor(mixColor(colors.ink, colors.onBlue, tf), colors.blue, dissolve)
+      // The hub's tile is the anchor itself, so its own tile stays hidden and
+      // its icon only turns light once it is over the formed anchor.
+      const onBlue =
+        id === hub ? ease.tileForm(Math.max(0, (s.converge - D.hubIconTurnAt) / (1 - D.hubIconTurnAt))) : tf
+      n.tile.style.transform = `translate(-50%, -50%) scale(${id === hub ? 0 : tf * (1 - dissolve)})`
+      n.icon.style.color = mixColor(mixColor(colors.ink, colors.onBlue, onBlue), colors.blue, dissolve)
       // Label sits just under the bare icon, then just under the tile.
       const labelY = lerp((g.icon * layout.iconStartScale) / 2, g.tile / 2, tf) + labelGap
       n.label.style.transform = `translate(-50%, ${labelY}px)`
       n.label.style.opacity = String(system.labels * (layout.labelsInSystem ? 1 : 1 - tf))
     }
+
+    // Anchor: a resting point at the system centre → the first blue node →
+    // the hub's tile, which then shrinks with the system and dissolves.
+    const af = ease.anchorForm(system.anchor)
+    const anchorOut = ease.settle(Math.max(system.hubOut, node[hub].settle))
+    const ac = g.converge[hub]
+    refs.anchor.style.transform = `translate3d(${g.center.x + (ac.x - g.center.x) * k + shrinkDelta.x * sh}px, ${
+      g.center.y + (ac.y - g.center.y) * k + shrinkDelta.y * sh
+    }px, 0) scale(${lerp(layout.anchorSize * g.unit / g.tile, 1, af) * k * (1 - anchorOut)})`
+    refs.anchor.style.backgroundColor = mixColor(colors.anchor, colors.blue, af)
+    refs.anchor.style.opacity = String(1 - anchorOut)
 
     refs.connectorLayer.setAttribute(
       'transform',
@@ -149,8 +183,9 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
       retracted = Math.min(retracted, c.retract)
       const len = pathLengths[def.id]
       const path = refs.connectorPaths[def.id]
+      // Connectors grow outward from the hub and retract back into it.
       path.style.strokeDashoffset = String(
-        len * (1 - ease.connectorDraw(c.draw)) - len * ease.connectorRetract(c.retract),
+        len * (1 - ease.connectorDraw(c.draw)) + len * ease.connectorRetract(c.retract),
       )
       path.style.visibility = c.draw > 0 && c.retract < 1 ? 'visible' : 'hidden'
     }
@@ -188,6 +223,9 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
     'movement',
   )
 
+  // The anchor becomes the first blue node; the hub travels into it.
+  tl.to(system, { anchor: 1, duration: D.anchorForm }, D.introHold + D.anchorFormAt)
+
   // STATE 02 + 03 — MOVEMENT → CONNECTION
   // icon moves → its connector grows → the next icon joins → …
   const arrival: Partial<Record<Discipline, number>> = {}
@@ -212,6 +250,7 @@ export function createHeroTimeline(refs: HeroRefs, layout: LayoutConfig): gsap.c
   const shrinkAt = lastDrawEnd + D.systemHold
   tl.addLabel('shrink', shrinkAt)
   tl.to(system, { labels: 0, duration: D.labelsOut }, shrinkAt)
+  tl.to(refs.grid, { opacity: 0, duration: D.gridOut }, shrinkAt)
   tl.to(system, { shrink: 1, duration: D.shrink }, shrinkAt)
 
   // STATE 06 — INTO TYPOGRAPHY

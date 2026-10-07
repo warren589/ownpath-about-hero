@@ -83,6 +83,9 @@ export function AboutHero() {
           stage,
           headlineItems: q<HTMLElement>('[data-headline-item]'),
           nodes,
+          anchor: stage.querySelector<HTMLElement>('.about-hero__anchor-point')!,
+          grid: stage.querySelector<SVGSVGElement>('.about-hero__grid')!,
+          gridPath: stage.querySelector<SVGPathElement>('.about-hero__grid path')!,
           connectorLayer: stage.querySelector<SVGGElement>('[data-connector-layer]')!,
           connectorPaths: Object.fromEntries(
             q<SVGPathElement>('[data-connector]').map((p) => [p.dataset.connector!, p]),
@@ -174,6 +177,11 @@ export function AboutHero() {
   return (
     <section className="about-hero" aria-labelledby="about-hero-title">
       <div className="about-hero__stage" ref={stageRef}>
+        {/* Underlying structure for the system; sits behind all content. */}
+        <svg className="about-hero__grid" aria-hidden="true">
+          <path />
+        </svg>
+
         <header className="about-hero__intro">
           <h1 id="about-hero-title" className="about-hero__headline">
             {HEADLINE.map((line) => (
@@ -196,6 +204,9 @@ export function AboutHero() {
               ))}
             </g>
           </svg>
+          <div className="about-hero__node">
+            <div className="about-hero__anchor-point" />
+          </div>
           {DISCIPLINES.map((id) => (
             <div key={id} className="about-hero__node" data-node={id}>
               <div className="about-hero__node-body">

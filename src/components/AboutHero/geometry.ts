@@ -12,6 +12,8 @@ export type StageGeometry = {
   start: Record<Discipline, Point>
   converge: Record<Discipline, Point>
   connectors: { def: ConnectorDef; d: string }[]
+  /** Background grid lines (one cell = one unit), passing through the anchor. */
+  grid: string
 }
 
 export function resolveGeometry(layout: LayoutConfig, width: number, height: number): StageGeometry {
@@ -24,7 +26,7 @@ export function resolveGeometry(layout: LayoutConfig, width: number, height: num
   for (const id of Object.keys(layout.iconStartPositions) as Discipline[]) {
     const s = layout.iconStartPositions[id]
     const c = layout.iconConvergePositions[id]
-    start[id] = { x: s.x * width, y: s.y * height }
+    start[id] = { x: center.x + s.x * unit, y: center.y + s.y * unit }
     converge[id] = { x: center.x + c.x * unit, y: center.y + c.y * unit }
   }
 
@@ -33,7 +35,31 @@ export function resolveGeometry(layout: LayoutConfig, width: number, height: num
     d: connectorPath(def, converge[def.from], converge[def.to], layout.axis, layout.connectorRadius * unit),
   }))
 
-  return { width, height, unit, tile, icon: tile * layout.iconInTile, center, start, converge, connectors }
+  return {
+    width,
+    height,
+    unit,
+    tile,
+    icon: tile * layout.iconInTile,
+    center,
+    start,
+    converge,
+    connectors,
+    grid: gridPath(center, unit, width, height),
+  }
+}
+
+/** Hairlines on whole pixels (+0.5 so a 1px stroke stays crisp). */
+function gridPath(center: Point, unit: number, width: number, height: number): string {
+  const crisp = (v: number) => Math.round(v) + 0.5
+  let d = ''
+  for (let x = center.x - Math.ceil(center.x / unit) * unit; x <= width; x += unit) {
+    d += `M${crisp(x)},0V${height}`
+  }
+  for (let y = center.y - Math.ceil(center.y / unit) * unit; y <= height; y += unit) {
+    d += `M0,${crisp(y)}H${width}`
+  }
+  return d
 }
 
 /**

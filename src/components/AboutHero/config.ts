@@ -6,9 +6,10 @@
  *
  * Coordinate conventions
  * ----------------------
- * - iconStartPositions:    fractions of the pinned stage (0–1 on each axis).
+ * - iconStartPositions:    grid units relative to `systemCenter` (the anchor).
  * - iconConvergePositions: grid units relative to `systemCenter`. One unit is
- *                          `unit(stageWidth, stageHeight)` pixels.
+ *                          `unit(stageWidth, stageHeight)` pixels, and is also
+ *                          the cell size of the background grid.
  * - iconFinalPositions:    not fixed numbers — measured at runtime from the
  *                          inline anchors inside the final paragraph
  *                          (see `paragraphAnchors`), so they always match the
@@ -69,8 +70,14 @@ export type LayoutConfig = {
   labelsInSystem: boolean
   /** Primary direction of travel for stepped connectors. */
   axis: 'x' | 'y'
-  /** Centre of the connected system, as stage fractions. */
+  /** Centre of the connected system, as stage fractions. The anchor sits here. */
   systemCenter: Point
+  /** The node that forms on the anchor and holds the system together. */
+  hub: Discipline
+  /** STATE 01 anchor: edge length of the resting point, in grid units. */
+  anchorSize: number
+  /** Background grid: fade-out radii around the anchor, in grid units. */
+  gridFade: Point
   iconStartPositions: Record<Discipline, Point>
   iconConvergePositions: Record<Discipline, Point>
   connectorPaths: ConnectorDef[]
@@ -85,12 +92,13 @@ export const convergeOrder: Discipline[] = ['people', 'design', 'strategy', 'eng
 
 /**
  * The connected system reads left → right: three disciplines merge into one
- * team, which carries a single path forward to impact.
+ * team, which carries a single path forward to impact. Every connector starts
+ * at the hub, so the network grows outward from the anchor.
  */
 const desktopConnectors: ConnectorDef[] = [
-  { id: 'design-people', from: 'design', to: 'people', route: 'straight' },
-  { id: 'strategy-people', from: 'strategy', to: 'people', route: 'step', stepAt: 0.5 },
-  { id: 'engineering-people', from: 'engineering', to: 'people', route: 'step', stepAt: 0.5 },
+  { id: 'people-design', from: 'people', to: 'design', route: 'straight' },
+  { id: 'people-strategy', from: 'people', to: 'strategy', route: 'step', stepAt: 0.5 },
+  { id: 'people-engineering', from: 'people', to: 'engineering', route: 'step', stepAt: 0.5 },
   // The single path forward carries the Ownpath step.
   { id: 'people-impact', from: 'people', to: 'impact', route: 'step', stepAt: 0.5 },
 ]
@@ -107,12 +115,18 @@ export const desktopLayout: LayoutConfig = {
   labelsInSystem: true,
   axis: 'x',
   systemCenter: { x: 0.5, y: 0.56 },
+  hub: 'people',
+  anchorSize: 0.07,
+  gridFade: { x: 7.5, y: 4.6 },
+  // A loose ring around the anchor. The open upper-left sector holds the
+  // headline. Each icon starts on the same side as its place in the system,
+  // so no path crosses the anchor.
   iconStartPositions: {
-    strategy: { x: 0.62, y: 0.25 },
-    design: { x: 0.87, y: 0.43 },
-    engineering: { x: 0.64, y: 0.69 },
-    people: { x: 0.2, y: 0.81 },
-    impact: { x: 0.9, y: 0.83 },
+    strategy: { x: 1.5, y: -3.3 },
+    people: { x: 4.6, y: -0.5 },
+    impact: { x: 3.9, y: 2.3 },
+    engineering: { x: -0.8, y: 3.0 },
+    design: { x: -4.1, y: 2.2 },
   },
   iconConvergePositions: {
     strategy: { x: -5, y: -2.4 },
@@ -139,12 +153,16 @@ export const mobileLayout: LayoutConfig = {
   labelsInSystem: false,
   axis: 'y',
   systemCenter: { x: 0.5, y: 0.56 },
+  hub: 'people',
+  anchorSize: 0.1,
+  gridFade: { x: 4.6, y: 5.6 },
+  // A full ring under the headline, again with each icon on the side it joins.
   iconStartPositions: {
-    strategy: { x: 0.24, y: 0.55 },
-    design: { x: 0.76, y: 0.5 },
-    engineering: { x: 0.56, y: 0.67 },
-    people: { x: 0.2, y: 0.84 },
-    impact: { x: 0.8, y: 0.82 },
+    strategy: { x: -3.0, y: -1.4 },
+    design: { x: 1.3, y: -2.8 },
+    engineering: { x: 3.1, y: -0.3 },
+    impact: { x: 2.2, y: 3.9 },
+    people: { x: -2.6, y: 2.4 },
   },
   iconConvergePositions: {
     strategy: { x: -2.7, y: -3 },
@@ -184,6 +202,11 @@ export const paragraphAnchors: ParagraphSegment[] = [
 export const animationDurations = {
   /** STATE 01 held before anything moves. */
   introHold: 0.5,
+  /** The anchor point grows into the first blue node as the hub approaches it. */
+  anchorFormAt: 0.4,
+  anchorForm: 1.5,
+  /** Portion of the hub's journey (0–1) after which its icon turns light on the formed anchor. */
+  hubIconTurnAt: 0.8,
   headlineOut: 1.0,
   headlineStagger: 0.12,
   /** STATE 02: one node's journey into the system. */
@@ -201,6 +224,8 @@ export const animationDurations = {
   /** STATE 04: the complete system holds still. */
   systemHold: 0.8,
   labelsOut: 0.45,
+  /** The background grid fades as the system leaves it. */
+  gridOut: 0.6,
   /** STATE 05: the whole system shrinks toward the paragraph. */
   shrink: 1.5,
   /** STATE 06 starts this far into the shrink, so the two read as one move. */
@@ -226,6 +251,7 @@ export const animationEasing = {
   /** Scroll smoothing — seconds the playhead takes to catch up with scroll. */
   scrub: 0.9,
   headlineOut: 'power2.in',
+  anchorForm: 'power2.inOut',
   convergeX: 'power2.inOut',
   /** A softer vertical ease than horizontal gives each path a gentle arc. */
   convergeY: 'sine.inOut',
@@ -240,6 +266,8 @@ export const animationEasing = {
 /** Brand colours as used by the animation (mirrors the CSS tokens). */
 export const colors = {
   ink: '#000000',
+  /** The STATE 01 anchor point, before it turns blue. */
+  anchor: '#808695',
   onBlue: '#F6F6F4',
   blue: '#0342F0',
 }

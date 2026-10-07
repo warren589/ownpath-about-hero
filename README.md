@@ -16,9 +16,9 @@ The section is pinned and one master timeline, scrubbed by scroll, does all the 
 
 | State | What happens |
 | --- | --- |
-| 01 Disconnected | Headline, supporting line, five standalone icons with quiet labels. |
-| 02 Movement | The headline lifts away. Icons travel one by one toward the system (softer vertical easing gives each one a slight arc). |
-| 03 Connection | Each icon becomes a blue node as it arrives, and its connector draws from it into the hub. |
+| 01 Disconnected | Headline, supporting line and five standalone icons with quiet labels. The icons form a loose constellation around a tiny anchor point at the system centre, set on a near-invisible grid. |
+| 02 Movement | The headline lifts away. The anchor grows into the first blue node while People travels into it, then the other icons follow one by one (a softer vertical ease gives each a slight arc). |
+| 03 Connection | Each icon becomes a blue node as it arrives, and its connector grows outward from the hub to meet it. |
 | 04 One system | Strategy, Design and Engineering merge into People, which carries one stepped path forward to Impact. |
 | 05 Shrink | The whole system scales down as one body toward the paragraph. |
 | 06 Into typography | Icons leave the system in reading order, shed their tiles and land inline. The connectors retract, the hub dissolves and the sentence fades in. |
@@ -30,13 +30,17 @@ The section is pinned and one master timeline, scrubbed by scroll, does all the 
 
 Every value you would want to tweak is in [`src/components/AboutHero/config.ts`](src/components/AboutHero/config.ts):
 
-- `desktopLayout` / `mobileLayout`: `iconStartPositions` (stage fractions), `iconConvergePositions` (grid units around `systemCenter`), `connectorPaths`, tile, stroke and corner sizes, `shrinkScale`, `scrollLength`.
+- `desktopLayout` / `mobileLayout`: `iconStartPositions` and `iconConvergePositions` (both in grid units around `systemCenter`, the anchor), `hub`, `anchorSize`, `gridFade`, `connectorPaths`, tile, stroke and corner sizes, `shrinkScale`, `scrollLength`.
 - `paragraphAnchors`: the final sentence and which word each icon introduces. The final icon positions are **measured** from these inline anchors, so they always match the real text layout.
 - `convergeOrder`: the order nodes join the system.
 - `animationDurations`: relative timeline units. Only the proportions matter; `scrollLength` sets how far the reader scrolls.
 - `animationEasing`: GSAP ease strings for each phase, plus `scrub` smoothing.
 
 How it works ([`timeline.ts`](src/components/AboutHero/timeline.ts)): each phase tweens its own progress value from 0 to 1, and a single `render()` combines them into transforms on every tick. Because of this, phases can overlap (shrink → settle, draw → retract) without tweens fighting over the same property, and scrubbing backwards works too. Connector paths are generated in [`geometry.ts`](src/components/AboutHero/geometry.ts) as orthogonal polylines with arc corners, then drawn with `stroke-dashoffset`.
+
+### State 01 structure
+
+One grid unit is both the system's layout module and the background grid cell, and the grid lines pass through the anchor. The constellation, the anchor and the connected system therefore share one underlying structure. The grid is a 1px hairline (`--op-grid` in `tokens.css`) that fades out radially around the anchor (`gridFade`) and dissolves as the system starts to shrink. Each icon starts on the same side as the place it takes in the system, so no path crosses the anchor. On desktop, the open upper-left sector of the ring is where the headline sits.
 
 ## Responsive and accessibility
 

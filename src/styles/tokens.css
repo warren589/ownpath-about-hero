@@ -5,6 +5,8 @@
   --op-ink: #000000;
   --op-muted: #808695;
   --op-chrome: #e4e4e1;
+  /* Background grid hairline: barely distinguishable from --op-bg. */
+  --op-grid: #ebebe8;
 
   /* Type */
   --op-serif: 'Georgia Pro', Georgia, 'Times New Roman', serif;

@@ -52,12 +52,27 @@
   pointer-events: none;
 }
 
+.about-hero__grid,
 .about-hero__connectors {
   position: absolute;
+  pointer-events: none;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+/* Structure, not decoration: hairlines a breath darker than the page. */
+.about-hero__grid path {
+  fill: none;
+  stroke: var(--op-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.about-hero__anchor-point {
+  position: absolute;
+  background: var(--op-muted);
 }
 
 .about-hero__connector {
@@ -175,7 +190,8 @@ em.about-hero__word {
     visibility: hidden;
   }
 
-  .js .about-hero__stage:not(.is-animated) .about-hero__node {
+  .js .about-hero__stage:not(.is-animated) .about-hero__node,
+  .js .about-hero__stage:not(.is-animated) .about-hero__grid {
     visibility: hidden;
   }
 }
@@ -198,7 +214,8 @@ em.about-hero__word {
     padding: 0;
   }
 
-  .about-hero__system {
+  .about-hero__system,
+  .about-hero__grid {
     display: none;
   }
 
